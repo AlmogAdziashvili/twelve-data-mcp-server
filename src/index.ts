@@ -4,13 +4,14 @@ import { z } from "zod";
 import fetch from "node-fetch";
 import { RSI, SMA, BollingerBands, ADX, ATR } from "technicalindicators";
 import { findSupportResistance } from "./support-and-resistence.js";
+import { Value } from "./types.js";
 
 const server = new McpServer({
   name: "Stocks MCP",
   version: "1.0.0"
 });
 
-let TWELVEDATA_API_KEY;
+let TWELVEDATA_API_KEY: string | undefined = undefined;
 
 process.argv.forEach((arg) => {
   if (arg === "--apikey") {
@@ -23,19 +24,31 @@ if (!TWELVEDATA_API_KEY) {
   process.exit(1);
 }
 
+async function fetchPrice(symbol: string): Promise<string> {
+  const response = await fetch(`https://api.twelvedata.com/price?symbol=${symbol}&apikey=${TWELVEDATA_API_KEY}`);
+  const data = (await response.json()) as { price: string, code?: string, message?: string };
+  if (data.code) {
+    throw new Error(`Error fetching price: ${data.message}`);
+  }
+  return data.price;
+}
+
+async function fetchTimeSeries(symbol: string, interval: string, outputsize: number): Promise<{ values: Value[] }> {
+  const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_API_KEY}`);
+  const data = (await response.json()) as { values: Value[], code?: string, message?: string };
+  if (data.code) {
+    throw new Error(`Error fetching time series: ${data.message}`);
+  }
+  return data;
+}
+
 server.tool("GetRealTimePrice",
   "Get the real-time price of an instrument",
   { symbol: z.string() },
   async ({ symbol }) => {
-    const price = await fetch(`https://api.twelvedata.com/price?symbol=${symbol}&apikey=${TWELVEDATA_API_KEY}`);
-    const data = await price.json();
-    if (data.code) {
-      return {
-        content: [{ type: "text", text: `Error: ${data.message}` }]
-      };
-    }
+    const price = await fetchPrice(symbol);
     return {
-      content: [{ type: "text", text: data.price }]
+      content: [{ type: "text", text: price }]
     };
   }
 );
@@ -50,13 +63,7 @@ server.tool("GetTimeSeries",
     outputsize: z.number().min(1).max(1000).default(2)
   },
   async ({ symbol, interval, outputsize }) => {
-    const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_API_KEY}`);
-    const data = await response.json();
-    if (data.code) {
-      return {
-        content: [{ type: "text", text: `Error: ${data.message}` }]
-      };
-    }
+    const data = await fetchTimeSeries(symbol, interval, outputsize);
     return {
       content: [{ type: "text", text: JSON.stringify(data.values) }]
     };
@@ -72,13 +79,7 @@ server.tool("GetMovingAverage",
     outputsize: z.number().min(1).max(1000).default(1)
   },
   async ({ symbol, interval, period, outputsize }) => {
-    const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${period + outputsize}&apikey=${TWELVEDATA_API_KEY}`);
-    const data = await response.json();
-    if (data.code) {
-      return {
-        content: [{ type: "text", text: `Error: ${data.message}` }]
-      };
-    }
+    const data = await fetchTimeSeries(symbol, interval, period + outputsize);
     const closePrices = data.values.map(value => Number(value.close));
     const sma = SMA.calculate({ period, values: closePrices, reversedInput: true });
     const results = new Array(outputsize).fill(0).map((_, i) => ({
@@ -100,13 +101,7 @@ server.tool("GetRelativeStrengthIndex",
     outputsize: z.number().min(1).max(1000).default(1)
   },
   async ({ symbol, interval, period, outputsize }) => {
-    const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${period + outputsize + 1}&apikey=${TWELVEDATA_API_KEY}`);
-    const data = await response.json();
-    if (data.code) {
-      return {
-        content: [{ type: "text", text: `Error: ${data.message}` }]
-      };
-    }
+    const data = await fetchTimeSeries(symbol, interval, period + outputsize + 1);
     const closePrices = data.values.map(value => Number(value.close));
     const rsi = RSI.calculate({ period: period, values: closePrices, reversedInput: true });
     const results = new Array(outputsize).fill(0).map((_, i) => ({
@@ -128,13 +123,7 @@ server.tool("GetBollingerBands",
     outputsize: z.number().min(1).max(1000).default(1)
   },
   async ({ symbol, interval, period, outputsize }) => {
-    const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${period + outputsize}&apikey=${TWELVEDATA_API_KEY}`);
-    const data = await response.json();
-    if (data.code) {
-      return {
-        content: [{ type: "text", text: `Error: ${data.message}` }]
-      };
-    }
+    const data = await fetchTimeSeries(symbol, interval, period + outputsize);
     const closePrices = data.values.map(value => Number(value.close));
     const bollingerBands = BollingerBands.calculate({ period, values: closePrices, reversedInput: true, stdDev: 2 });
     const results = new Array(outputsize).fill(0).map((_, i) => ({
@@ -156,13 +145,7 @@ server.tool("GetAverageDirectionalIndex",
     outputsize: z.number().min(1).max(1000).default(1)
   },
   async ({ symbol, interval, period, outputsize }) => {
-    const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${period * 2 + outputsize}&apikey=${TWELVEDATA_API_KEY}`);
-    const data = await response.json();
-    if (data.code) {
-      return {
-        content: [{ type: "text", text: `Error: ${data.message}` }]
-      };
-    }
+    const data = await fetchTimeSeries(symbol, interval, period * 2 + outputsize);
     const closePrices = data.values.map(value => Number(value.close));
     const highPrices = data.values.map(value => Number(value.high));
     const lowPrices = data.values.map(value => Number(value.low));
@@ -186,13 +169,7 @@ server.tool("GetAverageTrueRange",
     outputsize: z.number().min(1).max(1000).default(1)
   },
   async ({ symbol, interval, period, outputsize }) => {
-    const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${period + outputsize + 1}&apikey=${TWELVEDATA_API_KEY}`);
-    const data = await response.json();
-    if (data.code) {
-      return {
-        content: [{ type: "text", text: `Error: ${data.message}` }]
-      };
-    }
+    const data = await fetchTimeSeries(symbol, interval, period + outputsize + 1);
     const closePrices = data.values.map(value => Number(value.close));
     const highPrices = data.values.map(value => Number(value.high));
     const lowPrices = data.values.map(value => Number(value.low));
@@ -210,19 +187,13 @@ server.tool("GetAverageTrueRange",
 server.tool("GetSupportResistance",
   `Get the support and resistance levels of an instrument.
   Period is the number of days to look back, the default is 100 days.`,
-  { 
+  {
     symbol: z.string(),
     interval: z.enum(["1min", "5min", "15min", "30min", "45min", "1h", "2h", "4h", "1day", "1week", "1month"]),
     period: z.number().min(1).max(1000).default(100)
   },
   async ({ symbol, interval, period }) => {
-    const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${period}&apikey=${TWELVEDATA_API_KEY}`);
-    const data = await response.json();
-    if (data.code) {
-      return {
-        content: [{ type: "text", text: `Error: ${data.message}` }]
-      };
-    }
+    const data = await fetchTimeSeries(symbol, interval, period);
     const closePrices = data.values.map(value => Number(value.close)).toReversed();
     const [supports, resistances] = findSupportResistance(closePrices);
     const support = supports.map(support => support[1]);

@@ -1,18 +1,30 @@
 {
-  "name": "smcp",
+  "name": "twelve-data-mcp-server",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "A Model Context Protocol server that provides access to Twelve Data API.",
+  "license": "MIT",
+  "author": "Almog Adziashvili (Fiasco)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AlmogAdziashvili/twelve-data-mcp-server.git"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "bin": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.5",
     "node-fetch": "^3.3.2",
     "technicalindicators": "^3.1.0",
     "zod": "^3.25.20"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
   }
 }

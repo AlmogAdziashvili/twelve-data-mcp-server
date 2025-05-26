@@ -1,4 +1,4 @@
-export function findSupportResistance(prices, n = 12) {
+export function findSupportResistance(prices: number[], n = 12) {
     if (!Array.isArray(prices) || !prices.every(p => typeof p === 'number')) {
         throw new TypeError("prices must be an array of numbers.");
     }
@@ -6,11 +6,11 @@ export function findSupportResistance(prices, n = 12) {
         return [[], []];
     }
     if (!Number.isInteger(n) || n < 1) {
-        throw new ValueError("n (window parameter) must be an integer >= 1.");
+        throw new Error("n (window parameter) must be an integer >= 1.");
     }
 
-    const supports = [];
-    const resistances = [];
+    const supports: [number, number][] = [];
+    const resistances: [number, number][] = [];
 
     if (prices.length < 2 * n + 1) {
         return [[], []];
