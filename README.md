@@ -22,3 +22,13 @@ To use this server with the Claude Desktop app or Cursor.ai, add the following c
   }
 }
 ```
+
+## Available Tools
+- GetRealTimePrice
+- GetTimeSeries
+- GetMovingAverage
+- GetRelativeStrengthIndex
+- GetBollingerBands
+- GetAvarageDirectionalIndex
+- GetAvarageTrueRange
+- GetSupportResistance
