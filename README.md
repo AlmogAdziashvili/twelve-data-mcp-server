@@ -15,7 +15,7 @@ To use this server with the Claude Desktop app or Cursor.ai, add the following c
       "args": [
         "-y",
         "twelve-data-mcp-server",
-        "--api",
+        "--apikey",
         "YOUR_TWELVE_DATA_API_KEY"
       ],
     }
