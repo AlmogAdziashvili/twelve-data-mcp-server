@@ -1,5 +1,7 @@
 # twelve-data-mcp-server
 
+[![smithery badge](https://smithery.ai/badge/@AlmogAdziashvili/twelve-data-mcp-server)](https://smithery.ai/server/@AlmogAdziashvili/twelve-data-mcp-server)
+
 A Model Context Protocol server that provides access to Twelve Data API.
 
 ## Usage
