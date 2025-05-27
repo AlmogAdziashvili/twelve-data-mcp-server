@@ -195,7 +195,7 @@ server.tool("GetSupportResistance",
   },
   async ({ symbol, interval, period }) => {
     const data = await fetchTimeSeries(symbol, interval, period);
-    const closePrices = data.values.map(value => Number(value.close)).toReversed();
+    const closePrices = data.values.map(value => Number(value.close)).reverse();
     const [supports, resistances] = findSupportResistance(closePrices);
     const support = supports.map(support => support[1]);
     const resistance = resistances.map(resistance => resistance[1]);

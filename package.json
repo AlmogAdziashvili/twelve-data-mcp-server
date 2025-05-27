@@ -25,6 +25,7 @@
     "zod": "^3.25.20"
   },
   "devDependencies": {
+    "@tsconfig/node20": "^20.1.5",
     "typescript": "^5.8.3"
   }
 }
