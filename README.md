@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/almogadziashvili-twelve-data-mcp-server-badge.png)](https://mseep.ai/app/almogadziashvili-twelve-data-mcp-server)
+
 # twelve-data-mcp-server
 
 [![smithery badge](https://smithery.ai/badge/@AlmogAdziashvili/twelve-data-mcp-server)](https://smithery.ai/server/@AlmogAdziashvili/twelve-data-mcp-server)
